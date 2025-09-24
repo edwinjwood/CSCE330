@@ -50,7 +50,7 @@ female(jessie).
 male(adam).
 male(john).
 female(sue).
-male(sam).
+%% male(sam).
 female(jane).
 male(george).
 female(june).
@@ -76,15 +76,27 @@ grand_father(X,Z) :- father(X,Y), parent(Y,Z).
 %% Full siblings are siblings who have two parents in common.
 %% Problem 1. Define the full_sibling predicate. (3 points)
 %% Hints: use mother and father predicates.
-full_sibling(X, Y) :- undefined.
+%% Full siblings: share both parents and are distinct people.
+full_sibling(X, Y) :-
+    mother(M, X), mother(M, Y),
+    father(F, X), father(F, Y),
+    X \= Y.
 
 %% Half siblings are siblings who have exactly one parent in common. 
 %% Problem 2. Define the half_sibling predicate. (4 points)
 %% Hints: use mother and father predicates.
-half_sibling(X, Y) :- undefined.
+half_sibling(X, Y) :-
+    (
+        % same mother, different (or no) father
+        ( mother(M, X), mother(M, Y), \+ ( father(F, X), father(F, Y) ) )
+        ;
+        % same father, different (or no) mother
+        ( father(F2, X), father(F2, Y), \+ ( mother(M2, X), mother(M2, Y) ) )
+    ),
+    X \= Y.
 
 
-%% We will use Prolog to find the digits for C, R,O, S, A, D, N, G, E, R such that CROSS + ROADS = DANGER. Note that C , D and R must greater than 0.
+%% We will use Prolog to find the digits for C, R, O, S, A, D, N, G, E, R such that CROSS + ROADS = DANGER. Note that C , D and R must greater than 0.
 
 %%  CROSS
 %%+ ROADS
@@ -96,7 +108,7 @@ dig(0). dig(1). dig(2). dig(3). dig(4).
 dig(5). dig(6). dig(7). dig(8). dig(9).
 
 %% An auxiliary predicate to ensure uniqueness.
-uniq(C, R,O, S, A, D, N, G, E) :-
+uniq(C, R, O, S, A, D, N, G, E) :-
     \+ C = R,
     \+ C = O,
     \+ C = S,
@@ -143,7 +155,43 @@ uniq(C, R,O, S, A, D, N, G, E) :-
 %% Problem 3. Define solve_digits predicates. You must use dig/1 and uniq/9.
 %% Try to apply the optimization techniques to make
 %% your program more efficient. (8 points)
-solve_digits(C, R, O, S, A, D, N, G, E) :- undefined. 
+solve_digits(C, R, O, S, A, D, N, G, E) :-
+    % follow a column-wise instantiation order to prune early
+    % units column: S+S -> R, carry C1
+    dig(S),
+    Sum1 is S + S,
+    R0 is Sum1 mod 10,
+    C1 is Sum1 // 10,
+    R = R0, dig(R),
+    % tens column: S + D + C1 -> E, carry C2
+    dig(D), D > 0,
+    Sum2 is S + D + C1,
+    E0 is Sum2 mod 10,
+    C2 is Sum2 // 10,
+    E = E0, dig(E),
+    % hundreds column: O + A + C2 -> G, carry C3
+    dig(O), dig(A),
+    Sum3 is O + A + C2,
+    G0 is Sum3 mod 10,
+    C3 is Sum3 // 10,
+    G = G0, dig(G),
+    % thousands column: R + O + C3 -> N, carry C4
+    Sum4 is R + O + C3,
+    N0 is Sum4 mod 10,
+    C4 is Sum4 // 10,
+    N = N0, dig(N),
+    % ten-thousands column: C + R + C4 -> A, carry C5
+    dig(C), C > 0,
+    Sum5 is C + R + C4,
+    A0 is Sum5 mod 10,
+    C5 is Sum5 // 10,
+    A = A0,
+    % final carry must equal D
+    D =:= C5,
+    % leading R non-zero
+    R > 0,
+    % ensure all digits distinct
+    uniq(C, R, O, S, A, D, N, G, E).
 
 %% A pretty printing predicate to check your solution.
 print_solution :-
@@ -192,4 +240,37 @@ across(danny, david).
 
 %% Problem 4. Defined the following solve predicate to solve the puzzle. (10 points)
 %% Hints: Use people/1, beside/2, across/2. 
-solve(Coffee, Water, Coke, Milk, Steak, Lasagna, Pizza, Chicken) :- undefined.
+% helper: pick four distinct people
+uniq_people4(A, B, C, D) :-
+    people(A), people(B), people(C), people(D),
+    \+ A = B, \+ A = C, \+ A = D,
+    \+ B = C, \+ B = D,
+    \+ C = D.
+
+% solve/8 binds each beverage (Coffee, Water, Coke, Milk) to a distinct person
+% and each main (Steak, Lasagna, Pizza, Chicken) to a distinct person, then
+% applies the clues to constrain the assignment.
+solve(Coffee, Water, Coke, Milk, Steak, Lasagna, Pizza, Chicken) :-
+    % choose beverage assignments (a permutation of the four people)
+    uniq_people4(Coffee, Water, Coke, Milk),
+    % choose main-course assignments (a permutation of the four people)
+    uniq_people4(Steak, Lasagna, Pizza, Chicken),
+
+    % Clues:
+    % Donna only drinks water.
+    Water = donna,
+
+    % David never drinks coffee.
+    Coffee \= david,
+
+    % Doreen sat beside the person who ordered steak.
+    beside(doreen, Steak),
+
+    % Danny could not afford to order steak.
+    Steak \= danny,
+
+    % The chicken came with a Coke (same person).
+    Chicken = Coke,
+
+    % The person with lasagna sat across from the person with milk.
+    across(Lasagna, Milk).
