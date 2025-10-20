@@ -86,14 +86,7 @@ full_sibling(X, Y) :-
 %% Problem 2. Define the half_sibling predicate. (4 points)
 %% Hints: use mother and father predicates.
 half_sibling(X, Y) :-
-    (
-        % same mother, different (or no) father
-        ( mother(M, X), mother(M, Y), \+ ( father(F, X), father(F, Y) ) )
-        ;
-        % same father, different (or no) mother
-        ( father(F2, X), father(F2, Y), \+ ( mother(M2, X), mother(M2, Y) ) )
-    ),
-    X \= Y.
+%% needs work
 
 
 %% We will use Prolog to find the digits for C, R, O, S, A, D, N, G, E, R such that CROSS + ROADS = DANGER. Note that C , D and R must greater than 0.
