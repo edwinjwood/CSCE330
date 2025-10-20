@@ -92,4 +92,3 @@ d5 f g x = f x (g x)
 -- > d3 True "ignored"
 -- > d4 (*2) 10
 -- > d5 (\x y -> x + y) (\x -> x * 2) 5
-
