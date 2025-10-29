@@ -7,7 +7,7 @@ p0 = 'a'
 
 -- (1) 1 point.  
 
-p1 :: String
+p1 :: [Char]
 p1 = ['a', 'b', 'c']
 
 -- (2) 1 point.  

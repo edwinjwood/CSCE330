@@ -109,9 +109,10 @@ myMaximum (x:xs) = max x (myMaximum xs)
 
 fib :: Integer -> Integer
 fib n = fibHelper n 0 1
-  where
-    fibHelper 0 a _ = a
-    fibHelper n a b = fibHelper (n-1) b (a+b)
+
+fibHelper :: Integer -> Integer -> Integer -> Integer
+fibHelper 0 a _ = a
+fibHelper n a b = fibHelper (n-1) b (a+b)
 
 -- For example:
 -- > fib 3
