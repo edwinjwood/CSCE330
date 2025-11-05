@@ -6,15 +6,15 @@
 -- Problem 1 (2 points). Write down definitions that have the following types;
 
 curry' :: ((a, b) -> c) -> a -> b -> c
-curry' = undefined
+curry' f x y = f (x, y)
 
 uncurry' :: (a -> b -> c) -> (a, b) -> c
-uncurry' = undefined
+uncurry' f (x, y) = f x y
 
 
 -- Problem 2 (2 points): redefine the filter function using foldr.
 filter' :: (a -> Bool) -> [a] -> [a]
-filter' = undefined
+filter' p = foldr (\x xs -> if p x then x : xs else xs) []
 
 
 -- Problem 3 (2 points): Use pattern matching and recursion to define the following function altMap that
@@ -23,7 +23,9 @@ filter' = undefined
 -- > altMap (+10) (+100) [0,1,2,3,4]
 -- [10,101,12,103,14]
 altMap :: (a -> b) -> (a -> b) -> [a] -> [b]
-altMap = undefined
+altMap _ _ [] = []
+altMap f _ [x] = [f x]
+altMap f g (x:y:xs) = f x : g y : altMap f g xs
 
 -- Problem 4 (2 points): 
 -- Use pattern matching and recursion to define a function 'halve'
@@ -36,8 +38,11 @@ altMap = undefined
 -- ([0,2,4],[1,3,5])
 
 halve :: [a] -> ([a], [a])
-halve = undefined
-
+halve [] = ([], [])
+halve [x] = ([x], [])
+halve (x:y:xs) = (x:left, y:right)
+  where
+    (left, right) = halve xs
 
 -- Problem 5 (2 points)
 -- Use pattern matching and recursion to define the function merge that
@@ -48,7 +53,11 @@ halve = undefined
 -- [1,3,5,5,8]
 
 merge :: Ord a => [a] -> [a] -> [a]
-merge = undefined
+merge [] ys = ys
+merge xs [] = xs
+merge (x:xs) (y:ys)
+  | x <= y = x : merge xs (y:ys)
+  | otherwise = y : merge (x:xs) ys
 
 
 -- Problem 6 (2 points)
@@ -59,7 +68,11 @@ merge = undefined
 -- result from sorting the two halves of the list separately.
 
 msort :: Ord a => [a] -> [a]
-msort = undefined
+msort [] = [] -- Base case: empty list is already sorted.
+msort [x] = [x] -- Base case: singleton list is already sorted.
+msort xs = merge (msort left) (msort right)
+  where
+    (left, right) = halve xs
 
 -- > msort [5,9,8,6,5,4,3,2,1]
 -- [1,2,3,4,5,5,6,8,9]  
